@@ -4,6 +4,7 @@
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
+- Fix a removed map staying in memory through the aborted worker controller kept by the global dispatcher ([#9084](https://github.com/maplibre/maplibre-gl-js/issues/9084)) (by [@senkop](https://github.com/senkop))
 
 ## 6.19.0
 
