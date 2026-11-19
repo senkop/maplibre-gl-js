@@ -26,6 +26,19 @@ describe('GlobalDispatcher', () => {
         await expect(resultPromise).rejects.toMatchObject({name: 'AbortError', message: 'The workers were terminated while a message was in flight.'});
     });
 
+    test('releases the aborted controller when the workers terminate, so its abort reason cannot retain a removed map', async () => {
+        await getGlobalWorkerPool().acquire('map-1');
+        const globalDispatcher = getGlobalDispatcher();
+        await globalDispatcher.broadcast('my-plugin-message', 1).catch(() => {});
+        const abortController = globalDispatcher['workersAbortController'];
+        expect(abortController).toBeInstanceOf(AbortController);
+
+        await terminateGlobalWorkers();
+
+        expect(abortController.signal.aborted).toBe(true);
+        expect(globalDispatcher['workersAbortController']).toBeUndefined();
+    });
+
     test('registers and unregisters a message handler on the workers', async () => {
         const handler = vi.fn();
         await getGlobalWorkerPool().acquire('map-1');

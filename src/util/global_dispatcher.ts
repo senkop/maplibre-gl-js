@@ -80,8 +80,13 @@ export class GlobalDispatcher extends Evented<GlobalDispatcherEventType> {
     }
 
     private handleWorkersTerminated(): void {
-        this.workersAbortController?.abort(new Error('The workers were terminated while a message was in flight.'));
+        // Drop the reference before aborting: the abort reason's stack can reach the map whose
+        // removal terminated the workers, so holding the aborted controller would retain that map.
+        // In-flight messages keep their own reference and still see the abort.
+        const abortController = this.workersAbortController;
+        this.workersAbortController = undefined;
         this.actorsPromise = undefined;
+        abortController?.abort(new Error('The workers were terminated while a message was in flight.'));
     }
 
     /** Returns the actors on the pool's current workers, starting the workers if none are running. */
